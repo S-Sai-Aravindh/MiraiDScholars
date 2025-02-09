@@ -3,6 +3,7 @@ using Institute_Management.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Institute_Management.Migrations
 {
     [DbContext(typeof(InstituteContext))]
-    partial class InstituteContextModelSnapshot : ModelSnapshot
+    [Migration("20250209191651_ReAddataInDB")]
+    partial class ReAddataInDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,7 +39,7 @@ namespace Institute_Management.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Admins", (string)null);
+                    b.ToTable("Admins");
 
                     b.HasData(
                         new
@@ -73,7 +76,7 @@ namespace Institute_Management.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Batches", (string)null);
+                    b.ToTable("Batches");
 
                     b.HasData(
                         new
@@ -130,7 +133,7 @@ namespace Institute_Management.Migrations
 
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
 
                     b.HasData(
                         new
@@ -168,7 +171,7 @@ namespace Institute_Management.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("StudentCourses", (string)null);
+                    b.ToTable("StudentCourses");
 
                     b.HasData(
                         new
@@ -203,7 +206,7 @@ namespace Institute_Management.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Students", (string)null);
+                    b.ToTable("Students");
 
                     b.HasData(
                         new
@@ -239,7 +242,7 @@ namespace Institute_Management.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Teachers", (string)null);
+                    b.ToTable("Teachers");
 
                     b.HasData(
                         new
@@ -286,7 +289,7 @@ namespace Institute_Management.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
 
                     b.HasData(
                         new
