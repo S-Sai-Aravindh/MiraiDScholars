@@ -40,13 +40,13 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins",
-        builder =>
-        {
-            builder.AllowAnyOrigin()  
-                   .AllowAnyMethod()  
-                   .AllowAnyHeader(); 
-        });
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000") // Your frontend URL
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+               .AllowCredentials();
+    });
 });
 
 
@@ -67,7 +67,7 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.UseCors("AllowAllOrigins");
+app.UseCors("CorsPolicy");
 
 app.MapControllerRoute(
     name: "default",

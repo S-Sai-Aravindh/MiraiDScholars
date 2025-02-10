@@ -7,6 +7,8 @@
         public string? BatchTiming { get; set; }
         public string? BatchType { get; set; }
 
+        public int? CourseId { get; set; }
+
         public CourseDTO? Course { get; set; }
     }
 }

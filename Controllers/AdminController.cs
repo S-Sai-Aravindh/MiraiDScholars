@@ -284,6 +284,8 @@ namespace Institute_Management.Controllers
                 }
             }
 
+            
+
             // Update Enrollments if provided
             if (studentDto.Enrollments != null && studentDto.Enrollments.Any())
             {
@@ -436,80 +438,83 @@ namespace Institute_Management.Controllers
             // Find the teacher
             var teacher = await _context.Teachers
                 .Include(t => t.User)
-                .Include(t => t.Courses)
                 .FirstOrDefaultAsync(t => t.TeacherId == id);
-            if (teacher == null)
-            {
-                return NotFound();
-            }
+            //if (teacher == null)
+            //{
+            //    return NotFound();
+            //}
 
-            // Validate SubjectSpecialization
-            if (string.IsNullOrEmpty(teacherDto.SubjectSpecialization))
-            {
-                return BadRequest("SubjectSpecialization cannot be null or empty.");
-            }
+            //// Validate SubjectSpecialization
+            //if (string.IsNullOrEmpty(teacherDto.SubjectSpecialization))
+            //{
+            //    return BadRequest("SubjectSpecialization cannot be null or empty.");
+            //}
 
             // Update Teacher details
             teacher.UserId = teacherDto.User.UserId;
             teacher.SubjectSpecialization = teacherDto.SubjectSpecialization;
+            teacher.User.Name = teacherDto.User.Name;
+            teacher.User.Email = teacherDto.User.Email;
+            teacher.User.Role = teacherDto.User.Role;
+            teacher.User.ContactDetails = teacherDto.User.ContactDetails;
 
-            // Ensure that the User exists and update user information
-            if (teacher.User == null)
-            {
-                // If User does not exist, you can either return a BadRequest or create a new user.
-                // Here, let's assume we need to create a new user if it doesn't exist.
-                var user = new User
-                {
-                    UserId = teacherDto.User.UserId,
-                    Name = teacherDto.User.Name,
-                    Email = teacherDto.User.Email,
-                    Role = teacherDto.User.Role,
-                    ContactDetails = teacherDto.User.ContactDetails
-                };
-                _context.Users.Add(user); // Add the new user to the database
-                teacher.User = user; // Assign the new user to the teacher
-            }
-            else
-            {
-                // If the User exists, update their details
-                teacher.User.Name = teacherDto.User.Name;
-                teacher.User.Email = teacherDto.User.Email;
-                teacher.User.Role = teacherDto.User.Role;
-                teacher.User.ContactDetails = teacherDto.User.ContactDetails;
-            }
+            //// Ensure that the User exists and update user information
+            //if (teacher.User == null)
+            //{
+            //    // If User does not exist, you can either return a BadRequest or create a new user.
+            //    // Here, let's assume we need to create a new user if it doesn't exist.
+            //    var user = new User
+            //    {
+            //        UserId = teacherDto.User.UserId,
+            //        Name = teacherDto.User.Name,
+            //        Email = teacherDto.User.Email,
+            //        Role = teacherDto.User.Role,
+            //        ContactDetails = teacherDto.User.ContactDetails
+            //    };
+            //    _context.Users.Add(user); // Add the new user to the database
+            //    teacher.User = user; // Assign the new user to the teacher
+            //}
+            //else
+            //{
+            //    // If the User exists, update their details
+            //    teacher.User.Name = teacherDto.User.Name;
+            //    teacher.User.Email = teacherDto.User.Email;
+            //    teacher.User.Role = teacherDto.User.Role;
+            //    teacher.User.ContactDetails = teacherDto.User.ContactDetails;
+            //}
 
-            // Update courses
-            if (teacherDto.Courses != null)
-            {
-                // Remove existing courses that are not in the new list
-                foreach (var course in teacher.Courses.ToList())
-                {
-                    if (!teacherDto.Courses.Any(c => c.CourseId == course.CourseId))
-                    {
-                        teacher.Courses.Remove(course);
-                    }
-                }
+            //// Update courses
+            //if (teacherDto.Courses != null)
+            //{
+            //    // Remove existing courses that are not in the new list
+            //    foreach (var course in teacher.Courses.ToList())
+            //    {
+            //        if (!teacherDto.Courses.Any(c => c.CourseId == course.CourseId))
+            //        {
+            //            teacher.Courses.Remove(course);
+            //        }
+            //    }
 
-                // Add new courses
-                foreach (var courseDto in teacherDto.Courses)
-                {
-                    var existingCourse = teacher.Courses.FirstOrDefault(c => c.CourseId == courseDto.CourseId);
-                    if (existingCourse == null)
-                    {
-                        var newCourse = new Course
-                        {
-                            CourseId = courseDto.CourseId,
-                            CourseName = courseDto.CourseName,
-                            TeacherId = teacher.TeacherId
-                        };
-                        teacher.Courses.Add(newCourse);
-                    }
-                    else
-                    {
-                        existingCourse.CourseName = courseDto.CourseName;
-                    }
-                }
-            }
+            //    // Add new courses
+            //    foreach (var courseDto in teacherDto.Courses)
+            //    {
+            //        var existingCourse = teacher.Courses.FirstOrDefault(c => c.CourseId == courseDto.CourseId);
+            //        if (existingCourse == null)
+            //        {
+            //            var newCourse = new Course
+            //            {
+            //                CourseId = courseDto.CourseId,
+            //                CourseName = courseDto.CourseName,
+            //                TeacherId = teacher.TeacherId
+            //            };
+            //            teacher.Courses.Add(newCourse);
+            //        }
+            //        else
+            //        {
+            //            existingCourse.CourseName = courseDto.CourseName;
+            //        }
+            //    }
+            //}
 
             // Save changes to the database
             await _context.SaveChangesAsync();
@@ -697,29 +702,30 @@ namespace Institute_Management.Controllers
             // Update course details
             course.CourseName = courseDto.CourseName;
             course.Description = courseDto.Description;
+            course.TeacherId = courseDto.Teacher.TeacherId;
 
-            // Check if the teacher exists, and update teacher data
-            if (courseDto.Teacher != null)
-            {
-                var teacher = await _context.Teachers.Include(t => t.User).FirstOrDefaultAsync(t => t.TeacherId == courseDto.Teacher.TeacherId);
+            //// Check if the teacher exists, and update teacher data
+            //if (courseDto.Teacher != null)
+            //{
+            //    var teacher = await _context.Teachers.Include(t => t.User).FirstOrDefaultAsync(t => t.TeacherId == courseDto.Teacher.TeacherId);
 
-                if (teacher != null)
-                {
-                    // Update teacher information
-                    teacher.SubjectSpecialization = courseDto.Teacher.SubjectSpecialization;
-                    teacher.User.Name = courseDto.Teacher.User.Name;
-                    teacher.User.Email = courseDto.Teacher.User.Email;
-                    teacher.User.ContactDetails = courseDto.Teacher.User.ContactDetails;
-                    teacher.User.Role = courseDto.Teacher.User.Role;
+            //    if (teacher != null)
+            //    {
+            //        // Update teacher information
+            //        teacher.SubjectSpecialization = courseDto.Teacher.SubjectSpecialization;
+            //        teacher.User.Name = courseDto.Teacher.User.Name;
+            //        teacher.User.Email = courseDto.Teacher.User.Email;
+            //        teacher.User.ContactDetails = courseDto.Teacher.User.ContactDetails;
+            //        teacher.User.Role = courseDto.Teacher.User.Role;
 
-                    // Optionally update the teacher's User data if needed
-                    _context.Update(teacher);
-                }
-                else
-                {
-                    return BadRequest("Teacher does not exist.");
-                }
-            }
+            //        // Optionally update the teacher's User data if needed
+            //        _context.Update(teacher);
+            //    }
+            //    else
+            //    {
+            //        return BadRequest("Teacher does not exist.");
+            //    }
+            //}
 
             // Save changes
             await _context.SaveChangesAsync();
@@ -834,15 +840,20 @@ namespace Institute_Management.Controllers
         [HttpPost("batches")]
         public async Task<ActionResult<BatchDTO>> CreateBatch([FromBody] BatchDTO batchDto)
         {
-            // Check if the course exists, otherwise handle it
+            if (batchDto?.Course == null || batchDto?.Course.Teacher == null)
+            {
+                return BadRequest("Invalid course or teacher information.");
+            }
+
+            // Check if Course and Teacher exist, otherwise handle it
             var course = await _context.Courses
                 .Include(c => c.Teacher)
-                .ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(c => c.CourseId == batchDto.Course.CourseId);
+                    .ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(c => c.CourseId == batchDto.Course.CourseId && c.Teacher.TeacherId == batchDto.Course.Teacher.TeacherId);
 
             if (course == null)
             {
-                return BadRequest("Course does not exist.");
+                return BadRequest("Course or Teacher not found.");
             }
 
             var batch = new BatchModule.Batch
@@ -850,13 +861,13 @@ namespace Institute_Management.Controllers
                 BatchName = batchDto.BatchName,
                 BatchTiming = batchDto.BatchTiming,
                 BatchType = batchDto.BatchType,
-                CourseId = course.CourseId // Set CourseId from the provided course information
+                CourseId = course.CourseId // Set CourseId from the fetched course information
             };
 
             _context.Batches.Add(batch);
             await _context.SaveChangesAsync();
 
-            // Return the created batch with Course data
+            // Return the created batch with Course and Teacher data
             var createdBatchDto = new BatchDTO
             {
                 BatchId = batch.BatchId,
@@ -890,81 +901,61 @@ namespace Institute_Management.Controllers
 
 
 
+
+
+
         // PUT: api/admin/batches/{id}
         [HttpPut("batches/{id}")]
         public async Task<IActionResult> UpdateBatch(int id, [FromBody] BatchDTO batchDto)
         {
-            var batch = await _context.Batches.Include(b => b.Course).ThenInclude(c => c.Teacher).ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(b => b.BatchId == id);
-
-            if (batch == null) return NotFound();
-
-            // Update batch details
-            batch.BatchName = batchDto.BatchName;
-            batch.BatchTiming = batchDto.BatchTiming;
-            batch.BatchType = batchDto.BatchType;
-
-            // Check if the course exists, and update course and teacher data
-            if (batchDto.Course != null)
+            try
             {
-                var course = await _context.Courses.Include(c => c.Teacher).ThenInclude(t => t.User)
-                    .FirstOrDefaultAsync(c => c.CourseId == batchDto.Course.CourseId);
+                var batch = await _context.Batches.Include(b => b.Course)
+                                                   .FirstOrDefaultAsync(b => b.BatchId == id);
+                if (batch == null)
+                    return NotFound("Batch not found");
 
-                if (course != null)
-                {
-                    // Update course information
-                    course.CourseName = batchDto.Course.CourseName;
-                    course.Description = batchDto.Course.Description;
+                batch.BatchName = batchDto.BatchName;
+                batch.BatchTiming = batchDto.BatchTiming;
+                batch.BatchType = batchDto.BatchType;
+                batch.CourseId = batchDto.CourseId; // Update CourseId
 
-                    // Check if the teacher exists, and update teacher data
-                    if (batchDto.Course.Teacher != null)
-                    {
-                        var teacher = await _context.Teachers.Include(t => t.User)
-                            .FirstOrDefaultAsync(t => t.TeacherId == batchDto.Course.Teacher.TeacherId);
-
-                        if (teacher != null)
-                        {
-                            // Update teacher information
-                            teacher.SubjectSpecialization = batchDto.Course.Teacher.SubjectSpecialization;
-                            teacher.User.Name = batchDto.Course.Teacher.User.Name;
-                            teacher.User.Email = batchDto.Course.Teacher.User.Email;
-                            teacher.User.ContactDetails = batchDto.Course.Teacher.User.ContactDetails;
-                            teacher.User.Role = batchDto.Course.Teacher.User.Role;
-
-                            _context.Update(teacher);
-                        }
-                        else
-                        {
-                            return BadRequest("Teacher does not exist.");
-                        }
-                    }
-
-                    _context.Update(course);  // Update the course data
-                }
-                else
-                {
-                    return BadRequest("Course does not exist.");
-                }
+                await _context.SaveChangesAsync();
+                return NoContent();
             }
-
-            // Save changes
-            await _context.SaveChangesAsync();
-            return NoContent();
+            catch (Exception ex)
+            {
+                // Log the exception details
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
+
+
         // DELETE: api/admin/batches/{id}
+
         [HttpDelete("batches/{id}")]
         public async Task<IActionResult> DeleteBatch(int id)
         {
-            var batch = await _context.Batches.FindAsync(id);
-            if (batch == null) return NotFound();
+            var batch = await _context.Batches.Include(b => b.Course).FirstOrDefaultAsync(b => b.BatchId == id);
 
+            if (batch == null)
+                return NotFound();
+
+            // Nullify the related CourseId (if necessary)
+            batch.CourseId = null;
+
+            // Optionally, set the course reference to null if it is required
+            // batch.Course = null; // This can also be done if the relationship requires it
+
+            // Remove the batch
             _context.Batches.Remove(batch);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
 
         #endregion
 
