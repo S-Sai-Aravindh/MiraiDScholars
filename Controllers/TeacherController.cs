@@ -72,6 +72,8 @@ namespace Institute_Management.Controllers
             var teacherDto = new TeacherDTO
             {
                 TeacherId = (int)teacher.TeacherId,
+                UserId = teacher.UserId,
+                SubjectSpecialization = teacher.SubjectSpecialization,
                 User = new UserDTO
                 {
                     UserId = (int)teacher.UserId,

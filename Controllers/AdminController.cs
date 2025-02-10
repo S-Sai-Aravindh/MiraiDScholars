@@ -434,7 +434,10 @@ namespace Institute_Management.Controllers
         public async Task<IActionResult> UpdateTeacher(int id, [FromBody] TeacherDTO teacherDto)
         {
             // Find the teacher
-            var teacher = await _context.Teachers.Include(t => t.User).FirstOrDefaultAsync(t => t.TeacherId == id);
+            var teacher = await _context.Teachers
+                .Include(t => t.User)
+                .Include(t => t.Courses)
+                .FirstOrDefaultAsync(t => t.TeacherId == id);
             if (teacher == null)
             {
                 return NotFound();
@@ -475,21 +478,36 @@ namespace Institute_Management.Controllers
                 teacher.User.ContactDetails = teacherDto.User.ContactDetails;
             }
 
-            // Check if courses need to be reassigned to a different teacher (if TeacherId changes)
-            if (teacher.TeacherId != teacherDto.TeacherId)
+            // Update courses
+            if (teacherDto.Courses != null)
             {
-                var courses = await _context.Courses.Where(c => c.TeacherId == teacher.TeacherId).ToListAsync();
-
-                // Ensure that the new TeacherId exists in the Teachers table
-                var newTeacher = await _context.Teachers.FindAsync(teacherDto.TeacherId);
-                if (newTeacher == null)
+                // Remove existing courses that are not in the new list
+                foreach (var course in teacher.Courses.ToList())
                 {
-                    return BadRequest("The specified teacher does not exist.");
+                    if (!teacherDto.Courses.Any(c => c.CourseId == course.CourseId))
+                    {
+                        teacher.Courses.Remove(course);
+                    }
                 }
 
-                foreach (var course in courses)
+                // Add new courses
+                foreach (var courseDto in teacherDto.Courses)
                 {
-                    course.TeacherId = teacherDto.TeacherId; // Reassign to the new teacher
+                    var existingCourse = teacher.Courses.FirstOrDefault(c => c.CourseId == courseDto.CourseId);
+                    if (existingCourse == null)
+                    {
+                        var newCourse = new Course
+                        {
+                            CourseId = courseDto.CourseId,
+                            CourseName = courseDto.CourseName,
+                            TeacherId = teacher.TeacherId
+                        };
+                        teacher.Courses.Add(newCourse);
+                    }
+                    else
+                    {
+                        existingCourse.CourseName = courseDto.CourseName;
+                    }
                 }
             }
 
