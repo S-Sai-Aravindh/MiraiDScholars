@@ -29,6 +29,31 @@ namespace Institute_Management.Controllers
             return await _context.Users.ToListAsync();
         }
 
+        [HttpGet("Alldetails")]
+        public async Task<ActionResult<IEnumerable<object>>> GetAllUsers()
+        {
+            var users = await _context.Users.ToListAsync();
+
+            var userDtos = users.Select(user => new
+            {
+                UserId = user.UserId,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role,
+                ContactDetails = user.ContactDetails,
+                StudentId = _context.Students
+                    .Where(s => s.UserId == user.UserId)
+                    .Select(s => s.StudentId)
+                    .FirstOrDefault(),
+                TeacherId = _context.Teachers
+                    .Where(t => t.UserId == user.UserId)
+                    .Select(t => t.TeacherId)
+                    .FirstOrDefault()
+            }).ToList();
+
+            return Ok(userDtos);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> AuthenticateUser([FromQuery] string email, [FromQuery] string password)
         {
@@ -58,10 +83,47 @@ namespace Institute_Management.Controllers
                 ContactDetails = user.ContactDetails
             };
 
+
+            // Fetch the associated Student record if the user is a student
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == user.UserId);
+
+            StudentDTO studentDto = null;
+            if (student != null)
+            {
+                studentDto = new StudentDTO
+                {
+                    StudentId = student.StudentId,
+                    UserId = student.UserId,
+                    BatchId = student.BatchId,
+                    User = userDto, // Including UserDTO in StudentDTO
+                    Enrollments = student.Enrollments.Select(e => new EnrollmentDTO { /* mapping enrollments */ }).ToList()
+                };
+            }
+
+            // Fetch the associated Teacher record if the user is a teacher
+            var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == user.UserId);
+
+            TeacherDTO teacherDto = null;
+            if (teacher != null)
+            {
+                teacherDto = new TeacherDTO
+                {
+                    TeacherId = teacher.TeacherId,
+                    UserId = teacher.UserId,
+                    SubjectSpecialization = teacher.SubjectSpecialization,
+                    User = userDto,
+                    Courses = teacher.Courses.Select(c => new CourseDTO { /* mapping courses */ }).ToList()
+                };
+            }
+
+
+
             return Ok(new
             {
                 message = "Login successful",
-                User = userDto
+                User = userDto,
+                Student = studentDto, // Include StudentDTO if the user is a student
+                Teacher = teacherDto   // Include TeacherDTO if the user is a teacher
             });
         }
 
